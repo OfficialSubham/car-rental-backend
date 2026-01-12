@@ -1,16 +1,9 @@
 import { verify } from "jsonwebtoken";
-import { NextFunction, Request, response, Response } from "express";
-
-interface Req extends Request {
-  user: {
-    userId: number;
-    username: string;
-  };
-}
+import { NextFunction, Request, Response } from "express";
 
 const SECRET = process.env.JWT_SECRET || "";
 
-export function userValid(req: Req, res: Response, next: NextFunction) {
+export function userValid(req: Request, res: Response, next: NextFunction) {
   const { authorization } = req.headers;
 
   if (!authorization)

@@ -5,6 +5,7 @@ import express from "express";
 import { hash, compare } from "bcryptjs";
 import { sign } from "jsonwebtoken";
 import { createUser, loginUser } from "./utils/user";
+import { userValid } from "./middlewares/authMiddleware";
 
 const PORT = process.env.PORT || 3000;
 const SALT = process.env.SALT || 10;
@@ -63,6 +64,10 @@ app.post("/auth/login", async (req, res) => {
   } catch (error) {
     res.status(401).json({ success: false, error: "user does not  exist" });
   }
+});
+
+app.post("/bookings", userValid, async (req, res) => {
+  const { carName, days, rentPerDay } = req.body;
 });
 
 app.listen(PORT, () => {
