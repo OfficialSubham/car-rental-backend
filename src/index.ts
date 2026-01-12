@@ -6,6 +6,8 @@ import { hash, compare } from "bcryptjs";
 import { sign } from "jsonwebtoken";
 import { createUser, loginUser } from "./utils/user";
 import { userValid } from "./middlewares/authMiddleware";
+import { bookingSchema } from "./zod/bookSchema";
+import { createBooking } from "./utils/booking";
 
 const PORT = process.env.PORT || 3000;
 const SALT = process.env.SALT || 10;
@@ -68,6 +70,29 @@ app.post("/auth/login", async (req, res) => {
 
 app.post("/bookings", userValid, async (req, res) => {
   const { carName, days, rentPerDay } = req.body;
+  try {
+    const { success } = bookingSchema.safeParse({ carName, days, rentPerDay });
+    if (!success)
+      return res.status(400).json({ success: false, error: "invalid inputs" });
+    const { id } = await createBooking(
+      carName,
+      days,
+      rentPerDay,
+      req.user.userId
+    );
+
+    res.status(201).json({
+      success: true,
+      data: {
+        message: "Booking created successfully",
+        bookingId: id,
+        totalCost: rentPerDay * days,
+      },
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({ success: false, error: "invalid inputs" });
+  }
 });
 
 app.listen(PORT, () => {

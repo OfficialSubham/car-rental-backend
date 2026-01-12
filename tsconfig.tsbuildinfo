@@ -1,1 +1,1 @@
-{"root":["./src/index.ts","./src/db/db.ts","./src/middlewares/authMiddleware.ts","./src/scripts/initDb.ts","./src/utils/user.ts"],"version":"5.8.2"}
+{"root":["./src/index.ts","./src/@types/express/index.d.ts","./src/db/db.ts","./src/middlewares/authMiddleware.ts","./src/scripts/initDb.ts","./src/utils/booking.ts","./src/utils/user.ts","./src/zod/bookSchema.ts"],"version":"5.8.2"}
