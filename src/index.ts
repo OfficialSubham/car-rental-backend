@@ -2,10 +2,11 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import express from "express";
-import { pool } from "./db/db";
+import { hash } from "bcryptjs";
 import { createUser } from "./utils/createUser";
 
 const PORT = process.env.PORT || 3000;
+const SALT = process.env.SALT || 10;
 
 const app = express();
 app.use(express.json());
@@ -22,8 +23,9 @@ app.post("/auth/signup", async (req, res) => {
         success: false,
         error: "invalid inputs",
       });
-    const userId = await createUser(username, password);
-    res.json({
+    const hashPass = await hash(password, SALT);
+    const userId = await createUser(username, hashPass);
+    res.status(201).json({
       success: true,
       data: {
         message: "User created succesfully",
@@ -32,7 +34,7 @@ app.post("/auth/signup", async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    res.json({ success: false, error: "username already exists" });
+    res.status(409).json({ success: false, error: "username already exists" });
   }
 });
 
