@@ -1,7 +1,5 @@
-import dotenv from "dotenv";
 import { verify } from "jsonwebtoken";
 import { NextFunction, Request, response, Response } from "express";
-dotenv.config();
 
 interface Req extends Request {
   user: {
