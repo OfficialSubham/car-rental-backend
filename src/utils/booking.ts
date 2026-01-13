@@ -38,3 +38,43 @@ export async function getBookings(
     return rows;
   }
 }
+
+export async function updateBookingStatus(
+  userId: number,
+  status: string,
+  bookingId: number
+) {
+  const { rows } = await pool.query(
+    `
+    UPDATE bookings SET status=$1 WHERE (id = $2 AND user_id = $3) RETURNING id, car_name, days, rent_per_day, status;
+  `,
+    [status, bookingId, userId]
+  );
+  return rows;
+}
+
+export async function updateBooking(
+  userId: number,
+  carName: string,
+  days: number,
+  rentPerDay: number,
+  bookingId: number
+) {
+  const { rows } = await pool.query(
+    `
+    UPDATE bookings SET car_name=$1, days=$2, rent_per_day = $3  WHERE (id = $4 AND user_id = $5) RETURNING id, car_name, days, rent_per_day, status;
+  `,
+    [carName, days, rentPerDay, bookingId, userId]
+  );
+  return rows;
+}
+
+export async function isBookingExisted(bookingId: number) {
+  const { rows } = await pool.query(
+    `
+    SELECT * FROM bookings WHERE id = $1;  
+  `,
+    [bookingId]
+  );
+  return rows;
+}

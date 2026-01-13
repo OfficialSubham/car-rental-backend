@@ -6,8 +6,14 @@ import { hash, compare } from "bcryptjs";
 import { sign } from "jsonwebtoken";
 import { createUser, loginUser } from "./utils/user";
 import { userValid } from "./middlewares/authMiddleware";
-import { bookingSchema } from "./zod/bookSchema";
-import { createBooking, getBookings } from "./utils/booking";
+import { bookingSchema, statusSchema } from "./zod/bookSchema";
+import {
+  createBooking,
+  getBookings,
+  isBookingExisted,
+  updateBooking,
+  updateBookingStatus,
+} from "./utils/booking";
 
 const PORT = process.env.PORT || 3000;
 const SALT = process.env.SALT || 10;
@@ -127,6 +133,63 @@ app.get("/bookings", userValid, async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(404).json({ success: false, error: "bookingId not found" });
+  }
+});
+
+app.put("/bookings/:bookingId", userValid, async (req, res) => {
+  const { bookingId } = req.params;
+  const isBookingIdValid = await isBookingExisted(Number(bookingId));
+  if (isBookingIdValid.length == 0)
+    return res.status(404).json({ success: false, error: "booking not found" });
+  try {
+    if (bookingSchema.safeParse(req.body).success) {
+      const { carName, days, rentPerDay } = req.body;
+      const row = await updateBooking(
+        req.user.userId,
+        carName,
+        Number(days),
+        Number(rentPerDay),
+        Number(bookingId)
+      );
+      if (row.length === 0)
+        return res
+          .status(403)
+          .json({ success: false, error: "booking does not belong to user" });
+      res.json({
+        success: true,
+        data: {
+          message: "Booking updated successfully",
+          ...row[0],
+          totalCost: row[0].days * row[0].rent_per_day,
+        },
+      });
+    } else if (statusSchema.safeParse(req.body).success) {
+      const row = await updateBookingStatus(
+        req.user.userId,
+        req.body.status,
+        Number(bookingId)
+      );
+      if (!row.length)
+        return res
+          .status(403)
+          .json({ success: false, error: "booking does not belong to user" });
+      res.json({
+        success: true,
+        data: {
+          message: "Booking updated successfully",
+          ...row[0],
+          totalCost: row[0].days * row[0].rent_per_day,
+        },
+      });
+    } else {
+      return res.status(400).json({ success: false, error: "invalid inputs" });
+    }
+  } catch (error) {
+    console.log("DB Error", error);
+    res.status(404).json({
+      success: false,
+      error: "booking not found",
+    });
   }
 });
 
