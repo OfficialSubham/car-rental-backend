@@ -9,6 +9,7 @@ import { userValid } from "./middlewares/authMiddleware";
 import { bookingSchema, statusSchema } from "./zod/bookSchema";
 import {
   createBooking,
+  deleteBooking,
   getBookings,
   isBookingExisted,
   updateBooking,
@@ -190,6 +191,30 @@ app.put("/bookings/:bookingId", userValid, async (req, res) => {
       success: false,
       error: "booking not found",
     });
+  }
+});
+
+app.delete("/bookings/:bookingId", userValid, async (req, res) => {
+  const { bookingId } = req.params;
+  const bookingExisted = await isBookingExisted(Number(bookingId));
+  if (!bookingExisted.length)
+    return res.status(404).json({ success: false, error: "booking not found" });
+  try {
+    const row = await deleteBooking(Number(bookingId), req.user.userId);
+    if (row.length == 0)
+      return res
+        .status(403)
+        .json({ success: false, error: "booking does not belong to user" });
+
+    res.json({
+      success: true,
+      data: {
+        message: "Booking deleted successfully",
+      },
+    });
+  } catch (error) {
+    console.log("DB error", error);
+    res.status(404).json({ success: false, error: "booking not found" });
   }
 });
 

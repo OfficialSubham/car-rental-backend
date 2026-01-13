@@ -78,3 +78,14 @@ export async function isBookingExisted(bookingId: number) {
   );
   return rows;
 }
+
+export async function deleteBooking(bookingId: number, userId: number) {
+  const { rows } = await pool.query(
+    `
+    DELETE FROM bookings WHERE (id = $1 AND user_id = $2) RETURNING id;
+  `,
+    [bookingId, userId]
+  );
+
+  return rows;
+}
