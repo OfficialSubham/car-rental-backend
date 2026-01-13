@@ -7,7 +7,7 @@ import { sign } from "jsonwebtoken";
 import { createUser, loginUser } from "./utils/user";
 import { userValid } from "./middlewares/authMiddleware";
 import { bookingSchema } from "./zod/bookSchema";
-import { createBooking } from "./utils/booking";
+import { createBooking, getBookings } from "./utils/booking";
 
 const PORT = process.env.PORT || 3000;
 const SALT = process.env.SALT || 10;
@@ -92,6 +92,41 @@ app.post("/bookings", userValid, async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(400).json({ success: false, error: "invalid inputs" });
+  }
+});
+
+app.get("/bookings", userValid, async (req, res) => {
+  const { bookingId, summary } = req.query;
+  try {
+    if (summary == "true") {
+      const row = await getBookings(req.user.userId, Number(bookingId), true);
+      let totalAmountSpent = 0;
+      let totalBookings = 0;
+      row.forEach((d) => {
+        totalBookings++;
+        totalAmountSpent += d.days * d.rent_per_day;
+      });
+      res.json({
+        success: true,
+        data: [
+          {
+            userId: req.user.userId,
+            username: req.user.username,
+            totalBookings,
+            totalAmountSpent,
+          },
+        ],
+      });
+    } else {
+      const row = await getBookings(req.user.userId, Number(bookingId));
+      res.json({
+        success: true,
+        data: [{ ...row[0], totalCost: row[0].days * row[0].rent_per_day }],
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(404).json({ success: false, error: "bookingId not found" });
   }
 });
 

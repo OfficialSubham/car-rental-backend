@@ -14,3 +14,27 @@ export async function createBooking(
   );
   return rows[0];
 }
+
+export async function getBookings(
+  userId: number,
+  bookingId: number,
+  summary: boolean = false
+) {
+  if (summary) {
+    const { rows } = await pool.query(
+      `
+        SELECT * FROM bookings WHERE (user_id = $1 AND (status = 'booked' OR status = 'completed'));
+    `,
+      [userId]
+    );
+    return rows;
+  } else {
+    const { rows } = await pool.query(
+      `
+      SELECT id, car_name, days, rent_per_day, status FROM bookings WHERE (id = $1 AND (status = 'booked' OR status = 'completed'));
+    `,
+      [bookingId]
+    );
+    return rows;
+  }
+}
